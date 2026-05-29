@@ -56,6 +56,7 @@ async function buildInvoiceResponse(invoiceId: number) {
 
   return {
     ...invoice,
+    createdAt: invoice.createdAt instanceof Date ? invoice.createdAt.toISOString() : invoice.createdAt,
     subtotal: parseFloat(invoice.subtotal ?? "0"),
     discount: parseFloat(invoice.discount ?? "0"),
     tax: parseFloat(invoice.tax ?? "0"),
@@ -63,14 +64,21 @@ async function buildInvoiceResponse(invoiceId: number) {
     paidAmount: parseFloat(invoice.paidAmount ?? "0"),
     pendingAmount: parseFloat(invoice.pendingAmount ?? "0"),
     items: items.map((item) => ({
-      ...item,
+      id: item.id,
+      invoiceId: item.invoiceId,
+      serviceType: item.serviceType,
+      description: item.description,
       quantity: parseFloat(item.quantity ?? "1"),
       unitPrice: parseFloat(item.unitPrice ?? "0"),
       total: parseFloat(item.total ?? "0"),
     })),
     payments: payments.map((p) => ({
-      ...p,
+      id: p.id,
+      invoiceId: p.invoiceId,
       amount: parseFloat(p.amount ?? "0"),
+      paymentDate: p.paymentDate,
+      paymentMethod: p.paymentMethod,
+      notes: p.notes,
     })),
   };
 }
