@@ -35,8 +35,26 @@ app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+import path from "node:path";
+
 // Protect API routes with authorization middleware
 app.use("/api", requireAuth, router);
+
+// Serve static frontend assets in production
+const publicPath = path.resolve(__dirname, "../../pressure-wash/dist/public");
+app.use(express.static(publicPath));
+
+// Fallback all other routes to React Router (SPA)
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    return next();
+  }
+  res.sendFile(path.resolve(publicPath, "index.html"), (err) => {
+    if (err) {
+      next();
+    }
+  });
+});
 
 // Seed default admin user on startup if users table is empty
 async function seedAdminUser() {
