@@ -1,22 +1,28 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Pressure Wash Manager API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: customers
+    description: Customer management
+  - name: invoices
+    description: Invoice and quotation management
+  - name: payments
+    description: Payment tracking
+  - name: dashboard
+    description: Dashboard summary data
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +30,306 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List all customers
+      responses:
+        "200":
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "201":
+          description: Created customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get a customer by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerUpdate"
+      responses:
+        "200":
+          description: Updated customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Delete a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [invoices]
+      summary: List all invoices
+      responses:
+        "200":
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InvoiceListItem"
+    post:
+      operationId: createInvoice
+      tags: [invoices]
+      summary: Create an invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceInput"
+      responses:
+        "201":
+          description: Created invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /invoices/{id}:
+    get:
+      operationId: getInvoice
+      tags: [invoices]
+      summary: Get an invoice by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Invoice with items and payments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateInvoice
+      tags: [invoices]
+      summary: Update an invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceUpdate"
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteInvoice
+      tags: [invoices]
+      summary: Delete an invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /invoices/{id}/mark-paid:
+    post:
+      operationId: markInvoicePaid
+      tags: [invoices]
+      summary: Mark an invoice as fully paid
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "404":
+          description: Not found
+
+  /payments:
+    get:
+      operationId: listPayments
+      tags: [payments]
+      summary: List all payments
+      responses:
+        "200":
+          description: List of payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Add a payment to an invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentInput"
+      responses:
+        "201":
+          description: Created payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /payments/{id}:
+    delete:
+      operationId: deletePayment
+      tags: [payments]
+      summary: Delete a payment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /invoices/{id}/payments:
+    get:
+      operationId: listInvoicePayments
+      tags: [payments]
+      summary: List payments for an invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payments for the invoice
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/recent-invoices:
+    get:
+      operationId: getRecentInvoices
+      tags: [dashboard]
+      summary: Get recent invoices for dashboard
+      responses:
+        "200":
+          description: Recent invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InvoiceListItem"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +340,279 @@ components:
       required:
         - status
 
+    Customer:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        customerType:
+          type: string
+          enum: [Home, Gas Station, Commercial, Other]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    CustomerInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        customerType:
+          type: string
+          enum: [Home, Gas Station, Commercial, Other]
+        notes:
+          type: string
+
+    CustomerUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        customerType:
+          type: string
+          enum: [Home, Gas Station, Commercial, Other]
+        notes:
+          type: string
+
+    InvoiceItem:
+      type: object
+      required: [id, invoiceId, description, quantity, unitPrice, total]
+      properties:
+        id:
+          type: integer
+        invoiceId:
+          type: integer
+        serviceType:
+          type: ["string", "null"]
+        description:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+        total:
+          type: number
+
+    InvoiceItemInput:
+      type: object
+      required: [description, quantity, unitPrice]
+      properties:
+        serviceType:
+          type: string
+        description:
+          type: string
+          minLength: 1
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+
+    InvoiceListItem:
+      type: object
+      required: [id, invoiceNumber, customerId, customerName, totalAmount, paidAmount, pendingAmount, status, invoiceDate]
+      properties:
+        id:
+          type: integer
+        invoiceNumber:
+          type: string
+        customerId:
+          type: integer
+        customerName:
+          type: string
+        totalAmount:
+          type: number
+        paidAmount:
+          type: number
+        pendingAmount:
+          type: number
+        status:
+          type: string
+          enum: [Unpaid, Partially Paid, Paid]
+        invoiceDate:
+          type: string
+        dueDate:
+          type: ["string", "null"]
+
+    Invoice:
+      type: object
+      required: [id, invoiceNumber, customerId, customerName, totalAmount, paidAmount, pendingAmount, status, invoiceDate, items, payments]
+      properties:
+        id:
+          type: integer
+        invoiceNumber:
+          type: string
+        customerId:
+          type: integer
+        customerName:
+          type: string
+        invoiceDate:
+          type: string
+        dueDate:
+          type: ["string", "null"]
+        serviceLocation:
+          type: ["string", "null"]
+        subtotal:
+          type: number
+        discount:
+          type: number
+        tax:
+          type: number
+        totalAmount:
+          type: number
+        paidAmount:
+          type: number
+        pendingAmount:
+          type: number
+        status:
+          type: string
+          enum: [Unpaid, Partially Paid, Paid]
+        paymentMethod:
+          type: ["string", "null"]
+          enum: [Cash, Card, Zelle, Check, Bank Transfer, Other, null]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceItem"
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Payment"
+
+    InvoiceInput:
+      type: object
+      required: [customerId, invoiceNumber, invoiceDate, items]
+      properties:
+        customerId:
+          type: integer
+        invoiceNumber:
+          type: string
+        invoiceDate:
+          type: string
+        dueDate:
+          type: string
+        serviceLocation:
+          type: string
+        discount:
+          type: number
+        tax:
+          type: number
+        paymentMethod:
+          type: string
+          enum: [Cash, Card, Zelle, Check, Bank Transfer, Other]
+        notes:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceItemInput"
+
+    InvoiceUpdate:
+      type: object
+      properties:
+        customerId:
+          type: integer
+        invoiceNumber:
+          type: string
+        invoiceDate:
+          type: string
+        dueDate:
+          type: string
+        serviceLocation:
+          type: string
+        discount:
+          type: number
+        tax:
+          type: number
+        paymentMethod:
+          type: string
+          enum: [Cash, Card, Zelle, Check, Bank Transfer, Other]
+        notes:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceItemInput"
+
+    Payment:
+      type: object
+      required: [id, invoiceId, amount, paymentDate]
+      properties:
+        id:
+          type: integer
+        invoiceId:
+          type: integer
+        amount:
+          type: number
+        paymentDate:
+          type: string
+        paymentMethod:
+          type: ["string", "null"]
+          enum: [Cash, Card, Zelle, Check, Bank Transfer, Other, null]
+        notes:
+          type: ["string", "null"]
+
+    PaymentInput:
+      type: object
+      required: [invoiceId, amount, paymentDate]
+      properties:
+        invoiceId:
+          type: integer
+        amount:
+          type: number
+        paymentDate:
+          type: string
+        paymentMethod:
+          type: string
+          enum: [Cash, Card, Zelle, Check, Bank Transfer, Other]
+        notes:
+          type: string
+
+    DashboardSummary:
+      type: object
+      required: [totalCustomers, totalInvoices, totalBilled, totalPaid, totalPending, unpaidCount, partialCount, paidCount]
+      properties:
+        totalCustomers:
+          type: integer
+        totalInvoices:
+          type: integer
+        totalBilled:
+          type: number
+        totalPaid:
+          type: number
+        totalPending:
+          type: number
+        unpaidCount:
+          type: integer
+        partialCount:
+          type: integer
+        paidCount:
+          type: integer

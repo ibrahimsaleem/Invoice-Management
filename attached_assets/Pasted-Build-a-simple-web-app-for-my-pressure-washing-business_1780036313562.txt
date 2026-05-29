@@ -1,0 +1,119 @@
+Build a simple web app for my pressure washing business to manage customers, quotations, invoices, and payments.
+
+Use:
+- React or Next.js frontend
+- Supabase as the database
+- Tailwind CSS for clean UI
+- Local development first
+
+Important:
+Do not put the raw Postgres database URL in the frontend. Use environment variables safely.
+
+Main goal:
+I want a simple dashboard where I can add customers, create invoices/quotations, track how much they paid, how much is pending, and download the invoice as a PDF.
+
+Pages needed:
+
+1. Dashboard
+Show:
+- Total customers
+- Total invoices
+- Total amount billed
+- Total amount paid
+- Total pending amount
+- Recent invoices
+
+2. Customers Page
+Create, view, edit, and delete customers.
+
+Customer fields:
+- Name
+- Phone
+- Email
+- Address
+- Customer type: Home, Gas Station, Commercial, Other
+- Notes
+
+3. Create Invoice Page
+Create invoice/quotation with:
+- Customer selection
+- Invoice number
+- Invoice date
+- Due date
+- Service type
+- Service location
+- Description
+- Quantity
+- Unit price
+- Discount
+- Tax
+- Total amount
+- Amount paid
+- Pending amount
+- Payment status: Unpaid, Partially Paid, Paid
+- Payment method: Cash, Card, Zelle, Check, Bank Transfer, Other
+- Notes
+
+The app should automatically calculate:
+- Subtotal
+- Total
+- Amount paid
+- Pending balance
+- Payment status
+
+4. Invoice List Page
+Show all invoices in a table with:
+- Invoice number
+- Customer name
+- Total amount
+- Paid amount
+- Pending amount
+- Status
+- Date
+- View/Edit button
+
+5. Invoice Detail Page
+Show full invoice details with buttons:
+- Download PDF
+- Edit invoice
+- Add payment
+- Mark as paid
+
+6. Payment Tracking
+Allow me to add payments later.
+When payment is added, update:
+- Paid amount
+- Pending amount
+- Payment status
+
+7. PDF Invoice
+Generate a professional PDF invoice with:
+- Business name
+- Customer details
+- Invoice number
+- Service details
+- Total amount
+- Paid amount
+- Pending balance
+- Notes
+- Thank you message
+
+Database tables:
+- customers
+- invoices
+- invoice_items
+- payments
+
+Make the UI simple, clean, and easy to use.
+
+Add a sidebar with:
+- Dashboard
+- Customers
+- Invoices
+- Create Invoice
+- Payments
+
+Also create a README explaining:
+- How to add Supabase keys
+- How to run the app
+- How to create the database tables
