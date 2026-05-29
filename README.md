@@ -112,49 +112,34 @@ Open [http://localhost:5173/](http://localhost:5173/) in your web browser. You w
 
 ## Deploying to Render
 
-To make your application public, you can deploy both components directly to Render.
+## Deploying to Render (Unified Single Service)
 
-### Deployment Architecture
-- **API Server** will run as a **Web Service** (Node.js).
-- **Vite Frontend** will run as a **Static Site** (React Static Site).
+You can deploy this entire application (both frontend and backend) as a **single Web Service** on Render. This avoids managing multiple services, simplifies routing, prevents CORS issues, and fits entirely in Render's Free tier!
 
----
-
-### Step 1: Deploy the Backend (Web Service)
+### Step-by-Step Deployment:
 1. Go to **Render Dashboard** → **New +** → **Web Service**.
-2. Connect your GitHub repository.
+2. Connect your GitHub repository: `ibrahimsaleem/Invoice-Management`.
 3. Configure the following settings:
-   - **Name**: `power-clean-api` (or any custom name)
+   - **Name**: `invoice-management` (or any custom name)
    - **Language**: `Node`
-   - **Build Command**: `pnpm install && pnpm --filter @workspace/api-server run build`
-   - **Start Command**: `pnpm --filter @workspace/api-server run start`
+   - **Branch**: `main`
+   - **Root Directory**: *(Leave blank)*
+   - **Build Command**: 
+     ```bash
+     pnpm install && pnpm run build
+     ```
+     *(This installs dependencies and builds both the React frontend and the Express backend)*
+   - **Start Command**: 
+     ```bash
+     node artifacts/api-server/dist/index.mjs
+     ```
+     *(This runs the compiled Express server, which serves both the API and the React static assets)*
 4. Under **Environment Variables**, add:
-   - `DATABASE_URL`: `your-supabase-connection-uri` (remember to URL-encode password special characters)
+   - `DATABASE_URL`: `your-supabase-connection-uri` (remember to URL-encode password special characters like `#` to `%23`)
    - `SESSION_SECRET`: `your-secure-random-string`
    - `NODE_ENV`: `production`
-   - `PORT`: `8080` (Render will automatically bind this port)
-5. Save and deploy. Copy the deployed service URL (e.g., `https://power-clean-api.onrender.com`).
+   - `PORT`: `8080` (Render will automatically detect and bind to this port)
+5. Under **Instance Type**, select **Free**.
+6. Click **Deploy Web Service**.
 
----
-
-### Step 2: Deploy the Frontend (Static Site)
-1. Go to **Render Dashboard** → **New +** → **Static Site**.
-2. Connect your GitHub repository.
-3. Configure the following settings:
-   - **Name**: `power-clean-pro` (or any custom name)
-   - **Build Command**: `pnpm install && pnpm --filter @workspace/pressure-wash run build`
-   - **Publish Directory**: `artifacts/pressure-wash/dist/public`
-4. Under **Environment Variables**, add:
-   - `PORT`: `5173`
-   - `BASE_PATH`: `/`
-5. **CORS & Rewrite Rules (CRITICAL)**:
-   Since the React app runs in the browser, requests to `/api/*` must be routed to your backend Web Service. On the Render Static Site page:
-   - Go to **Redirects/Rewrites** in the sidebar.
-   - Click **Add Rule**.
-   - **Source**: `/api/*`
-   - **Destination**: `https://your-api-url.onrender.com/api/*` (replace with your actual backend Web Service URL)
-   - **Action**: `Rewrite` (do NOT use redirect, this acts as a reverse proxy)
-   - Click **Save**.
-6. Save and deploy the Static Site.
-
-Once built, you can access your production app via your Render Static Site URL!
+Once the deployment completes, your entire application will be live at the single URL provided by Render!
