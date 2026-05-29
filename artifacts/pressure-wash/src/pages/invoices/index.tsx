@@ -1,8 +1,19 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Plus, Search, Eye, Pencil, Trash2 } from "lucide-react";
-import { useListInvoices, useDeleteInvoice, getListInvoicesQueryKey } from "@workspace/api-client-react";
+import { Plus, Search, Eye, Pencil, Trash2, DollarSign } from "lucide-react";
+import {
+  useListInvoices,
+  useDeleteInvoice,
+  useCreatePayment,
+  getListInvoicesQueryKey,
+  getGetInvoiceQueryKey,
+  getGetDashboardSummaryQueryKey,
+  getGetRecentInvoicesQueryKey,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,17 +30,53 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate, statusColor } from "@/lib/format";
+
+const paymentSchema = z.object({
+  amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
+  paymentDate: z.string().min(1, "Date is required"),
+  paymentMethod: z.enum(["Cash", "Card", "Zelle", "Check", "Bank Transfer", "Other"]).optional(),
+  notes: z.string().optional(),
+});
+
+type PaymentFormData = z.infer<typeof paymentSchema>;
+
+type PayInvoiceState = {
+  id: number;
+  invoiceNumber: string;
+  customerName: string;
+  pendingAmount: number;
+};
 
 export default function InvoicesPage() {
   const { data: invoices, isLoading } = useListInvoices();
   const deleteInvoice = useDeleteInvoice();
+  const createPayment = useCreatePayment();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [payInvoice, setPayInvoice] = useState<PayInvoiceState | null>(null);
+
+  const form = useForm<PaymentFormData>({
+    resolver: zodResolver(paymentSchema),
+    defaultValues: {
+      amount: 0,
+      paymentDate: new Date().toISOString().slice(0, 10),
+      notes: "",
+    },
+  });
 
   const filtered = (invoices ?? []).filter((inv) => {
     const matchSearch =
@@ -39,6 +86,15 @@ export default function InvoicesPage() {
     return matchSearch && matchStatus;
   });
 
+  const openPayDialog = (inv: PayInvoiceState) => {
+    form.reset({
+      amount: inv.pendingAmount,
+      paymentDate: new Date().toISOString().slice(0, 10),
+      notes: "",
+    });
+    setPayInvoice(inv);
+  };
+
   const handleDelete = () => {
     if (deleteId == null) return;
     deleteInvoice.mutate(
@@ -46,12 +102,43 @@ export default function InvoicesPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListInvoicesQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetRecentInvoicesQueryKey() });
           toast({ title: "Invoice deleted" });
           setDeleteId(null);
         },
         onError: () => {
           toast({ title: "Failed to delete invoice", variant: "destructive" });
           setDeleteId(null);
+        },
+      }
+    );
+  };
+
+  const handlePaySubmit = (values: PaymentFormData) => {
+    if (!payInvoice) return;
+    createPayment.mutate(
+      {
+        data: {
+          invoiceId: payInvoice.id,
+          amount: values.amount,
+          paymentDate: values.paymentDate,
+          paymentMethod: values.paymentMethod,
+          notes: values.notes || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListInvoicesQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetInvoiceQueryKey(payInvoice.id) });
+          queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetRecentInvoicesQueryKey() });
+          queryClient.invalidateQueries({ queryKey: ["customer-balances"] });
+          toast({ title: `Payment of ${formatCurrency(values.amount)} recorded` });
+          setPayInvoice(null);
+        },
+        onError: () => {
+          toast({ title: "Failed to record payment", variant: "destructive" });
         },
       }
     );
@@ -124,7 +211,7 @@ export default function InvoicesPage() {
             {/* Mobile: card list */}
             <div className="md:hidden space-y-2">
               {filtered.map((inv) => (
-                <div key={inv.id} className="bg-card border border-card-border rounded-xl overflow-hidden">
+                <div key={inv.id} className="bg-card border border-border rounded-xl overflow-hidden">
                   <Link href={`/invoices/${inv.id}`} className="block p-3.5 hover:bg-muted/30 active:bg-muted/50 transition-colors">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -148,8 +235,25 @@ export default function InvoicesPage() {
                       </div>
                     </div>
                   </Link>
-                  <div className="flex border-t border-border divide-x divide-border">
-                    <Link href={`/invoices/${inv.id}/edit`} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/30 transition-colors">
+                  <div className={`flex border-t border-border ${inv.pendingAmount > 0 ? "divide-x divide-border" : "divide-x divide-border"}`}>
+                    {inv.pendingAmount > 0 && (
+                      <button
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors"
+                        onClick={() => openPayDialog({
+                          id: inv.id,
+                          invoiceNumber: inv.invoiceNumber,
+                          customerName: inv.customerName,
+                          pendingAmount: inv.pendingAmount,
+                        })}
+                      >
+                        <DollarSign className="w-3.5 h-3.5" />
+                        Record Payment
+                      </button>
+                    )}
+                    <Link
+                      href={`/invoices/${inv.id}/edit`}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/30 transition-colors"
+                    >
                       <Pencil className="w-3.5 h-3.5" />
                       Edit
                     </Link>
@@ -196,6 +300,22 @@ export default function InvoicesPage() {
                       <td className="px-4 py-3 text-xs text-muted-foreground">{formatDate(inv.invoiceDate)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1">
+                          {inv.pendingAmount > 0 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 px-2 text-xs text-primary border-primary/30 hover:bg-primary/5"
+                              onClick={() => openPayDialog({
+                                id: inv.id,
+                                invoiceNumber: inv.invoiceNumber,
+                                customerName: inv.customerName,
+                                pendingAmount: inv.pendingAmount,
+                              })}
+                            >
+                              <DollarSign className="w-3.5 h-3.5 mr-1" />
+                              Pay
+                            </Button>
+                          )}
                           <Button variant="ghost" size="sm" asChild className="h-8 w-8 p-0">
                             <Link href={`/invoices/${inv.id}`}><Eye className="w-3.5 h-3.5" /></Link>
                           </Button>
@@ -221,6 +341,7 @@ export default function InvoicesPage() {
         )}
       </div>
 
+      {/* Delete confirmation dialog */}
       <AlertDialog open={deleteId != null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -240,6 +361,95 @@ export default function InvoicesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Quick pay dialog */}
+      <Dialog open={payInvoice != null} onOpenChange={(open) => !open && setPayInvoice(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Record Payment</DialogTitle>
+            <div className="text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{payInvoice?.invoiceNumber}</span>
+              {" · "}{payInvoice?.customerName}
+              <span className="ml-2 text-yellow-600 dark:text-yellow-400 font-medium">
+                {formatCurrency(payInvoice?.pendingAmount ?? 0)} outstanding
+              </span>
+            </div>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handlePaySubmit)} className="space-y-4 pt-1">
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount ($) *</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" min="0.01" placeholder="0.00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="paymentDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Date *</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="paymentMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Method</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select method..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {["Cash", "Card", "Zelle", "Check", "Bank Transfer", "Other"].map((m) => (
+                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Optional note..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setPayInvoice(null)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={createPayment.isPending}>
+                  {createPayment.isPending ? "Saving..." : "Record Payment"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

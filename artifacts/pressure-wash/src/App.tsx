@@ -10,6 +10,7 @@ import InvoicesPage from "@/pages/invoices/index";
 import InvoiceForm from "@/pages/invoices/InvoiceForm";
 import InvoiceDetail from "@/pages/invoices/InvoiceDetail";
 import PaymentsPage from "@/pages/payments/index";
+import BalancesPage from "@/pages/balances";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ function Router() {
       </Route>
 
       <Route path="/payments" component={PaymentsPage} />
+      <Route path="/balances" component={BalancesPage} />
 
       <Route component={NotFound} />
     </Switch>

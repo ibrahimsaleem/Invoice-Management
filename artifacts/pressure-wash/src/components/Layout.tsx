@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Users, FileText, PlusCircle, CreditCard, Droplets } from "lucide-react";
+import { LayoutDashboard, Users, FileText, PlusCircle, CreditCard, Droplets, BarChart2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { href: "/invoices", label: "Invoices", icon: FileText },
   { href: "/invoices/new", label: "New", icon: PlusCircle },
   { href: "/payments", label: "Payments", icon: CreditCard },
+  { href: "/balances", label: "Balances", icon: BarChart2 },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {

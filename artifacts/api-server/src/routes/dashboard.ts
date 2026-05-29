@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, count, sum } from "drizzle-orm";
+import { eq, desc, count, sum, sql } from "drizzle-orm";
 import { db, invoicesTable, customersTable } from "@workspace/db";
 import {
   GetDashboardSummaryResponse,
@@ -73,6 +73,49 @@ router.get("/dashboard/recent-invoices", async (req, res): Promise<void> => {
   }));
 
   res.json(GetRecentInvoicesResponse.parse(parsed));
+});
+
+router.get("/dashboard/customer-balances", async (req, res): Promise<void> => {
+  const rows = await db
+    .select({
+      customerId: customersTable.id,
+      customerName: customersTable.name,
+      customerPhone: customersTable.phone,
+      invoiceCount: count(invoicesTable.id),
+      totalBilled: sum(invoicesTable.totalAmount),
+      totalPaid: sum(invoicesTable.paidAmount),
+      totalPending: sum(invoicesTable.pendingAmount),
+    })
+    .from(customersTable)
+    .leftJoin(invoicesTable, eq(invoicesTable.customerId, customersTable.id))
+    .groupBy(customersTable.id, customersTable.name, customersTable.phone);
+
+  const result = rows
+    .map((r) => {
+      const billed = parseFloat(r.totalBilled ?? "0");
+      const paid = parseFloat(r.totalPaid ?? "0");
+      const pending = parseFloat(r.totalPending ?? "0");
+      const invoiceCount = r.invoiceCount;
+      let paymentStatus = "No Invoices";
+      if (invoiceCount > 0) {
+        if (pending > 0 && paid === 0) paymentStatus = "Unpaid";
+        else if (pending > 0) paymentStatus = "Partially Paid";
+        else paymentStatus = "Paid";
+      }
+      return {
+        customerId: r.customerId,
+        customerName: r.customerName,
+        customerPhone: r.customerPhone ?? null,
+        invoiceCount,
+        totalBilled: billed,
+        totalPaid: paid,
+        totalPending: pending,
+        paymentStatus,
+      };
+    })
+    .sort((a, b) => b.totalPending - a.totalPending);
+
+  res.json(result);
 });
 
 export default router;
