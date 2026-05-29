@@ -45,7 +45,7 @@ const publicPath = path.resolve(__dirname, "../../pressure-wash/dist/public");
 app.use(express.static(publicPath));
 
 // Fallback all other routes to React Router (SPA)
-app.get("/*", (req, res, next) => {
+app.get("/:splat*", (req, res, next) => {
   if (req.path.startsWith("/api")) {
     return next();
   }
