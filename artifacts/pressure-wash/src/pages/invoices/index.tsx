@@ -59,48 +59,49 @@ export default function InvoicesPage() {
 
   return (
     <Layout>
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+      <div className="p-4 md:p-6 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold">Invoices</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">All invoices and quotations</p>
+            <h1 className="text-xl md:text-2xl font-bold">Invoices</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {invoices?.length ?? 0} total
+            </p>
           </div>
-          <Button asChild data-testid="button-new-invoice">
+          <Button asChild size="sm">
             <Link href="/invoices/new">
-              <Plus className="w-4 h-4 mr-2" />
-              New Invoice
+              <Plus className="w-4 h-4 mr-1.5" />
+              New
             </Link>
           </Button>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-3 mb-5">
+        <div className="flex gap-2 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search invoices or customers..."
+              placeholder="Search invoices..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
-              data-testid="input-search-invoices"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40" data-testid="select-status-filter">
+            <SelectTrigger className="w-32 md:w-40 flex-shrink-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">All Statuses</SelectItem>
+              <SelectItem value="All">All</SelectItem>
               <SelectItem value="Unpaid">Unpaid</SelectItem>
-              <SelectItem value="Partially Paid">Partially Paid</SelectItem>
+              <SelectItem value="Partially Paid">Partial</SelectItem>
               <SelectItem value="Paid">Paid</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
           </div>
         ) : !filtered.length ? (
           <Card>
@@ -119,67 +120,104 @@ export default function InvoicesPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/40">
-                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Invoice #</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide hidden sm:table-cell">Customer</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Total</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide hidden sm:table-cell">Paid</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide hidden md:table-cell">Pending</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Status</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide hidden lg:table-cell">Date</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((inv) => (
-                  <tr key={inv.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors" data-testid={`row-invoice-${inv.id}`}>
-                    <td className="px-4 py-3">
-                      <Link href={`/invoices/${inv.id}`} className="font-medium text-primary hover:underline" data-testid={`link-invoice-${inv.id}`}>
-                        {inv.invoiceNumber}
-                      </Link>
-                      <div className="text-xs text-muted-foreground sm:hidden">{inv.customerName}</div>
-                    </td>
-                    <td className="px-4 py-3 hidden sm:table-cell text-foreground">{inv.customerName}</td>
-                    <td className="px-4 py-3 text-right font-medium">{formatCurrency(inv.totalAmount)}</td>
-                    <td className="px-4 py-3 text-right hidden sm:table-cell text-green-600 dark:text-green-400">{formatCurrency(inv.paidAmount)}</td>
-                    <td className="px-4 py-3 text-right hidden md:table-cell text-yellow-600 dark:text-yellow-400">{formatCurrency(inv.pendingAmount)}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${statusColor(inv.status)}`} data-testid={`status-invoice-${inv.id}`}>
-                        {inv.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 hidden lg:table-cell text-xs text-muted-foreground">{formatDate(inv.invoiceDate)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="sm" asChild className="h-8 w-8 p-0">
-                          <Link href={`/invoices/${inv.id}`} data-testid={`button-view-invoice-${inv.id}`}>
-                            <Eye className="w-3.5 h-3.5" />
-                          </Link>
-                        </Button>
-                        <Button variant="ghost" size="sm" asChild className="h-8 w-8 p-0">
-                          <Link href={`/invoices/${inv.id}/edit`} data-testid={`button-edit-invoice-${inv.id}`}>
-                            <Pencil className="w-3.5 h-3.5" />
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                          onClick={() => setDeleteId(inv.id)}
-                          data-testid={`button-delete-invoice-${inv.id}`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+          <>
+            {/* Mobile: card list */}
+            <div className="md:hidden space-y-2">
+              {filtered.map((inv) => (
+                <div key={inv.id} className="bg-card border border-card-border rounded-xl overflow-hidden">
+                  <Link href={`/invoices/${inv.id}`} className="block p-3.5 hover:bg-muted/30 active:bg-muted/50 transition-colors">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-primary text-sm">{inv.invoiceNumber}</span>
+                          <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${statusColor(inv.status)}`}>
+                            {inv.status}
+                          </span>
+                        </div>
+                        <div className="text-sm text-foreground font-medium mt-0.5 truncate">{inv.customerName}</div>
+                        <div className="text-xs text-muted-foreground">{formatDate(inv.invoiceDate)}</div>
                       </div>
-                    </td>
+                      <div className="text-right flex-shrink-0">
+                        <div className="font-bold text-base">{formatCurrency(inv.totalAmount)}</div>
+                        {inv.pendingAmount > 0 && (
+                          <div className="text-xs text-yellow-600 dark:text-yellow-400">{formatCurrency(inv.pendingAmount)} due</div>
+                        )}
+                        {inv.paidAmount > 0 && inv.pendingAmount === 0 && (
+                          <div className="text-xs text-green-600 dark:text-green-400">Paid in full</div>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                  <div className="flex border-t border-border divide-x divide-border">
+                    <Link href={`/invoices/${inv.id}/edit`} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/30 transition-colors">
+                      <Pencil className="w-3.5 h-3.5" />
+                      Edit
+                    </Link>
+                    <button
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-destructive hover:bg-destructive/5 transition-colors"
+                      onClick={() => setDeleteId(inv.id)}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: table */}
+            <div className="hidden md:block overflow-hidden rounded-lg border border-border">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/40">
+                    <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Invoice #</th>
+                    <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Customer</th>
+                    <th className="text-right px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Total</th>
+                    <th className="text-right px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Paid</th>
+                    <th className="text-right px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Pending</th>
+                    <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Status</th>
+                    <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Date</th>
+                    <th className="text-right px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filtered.map((inv) => (
+                    <tr key={inv.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <Link href={`/invoices/${inv.id}`} className="font-medium text-primary hover:underline">{inv.invoiceNumber}</Link>
+                      </td>
+                      <td className="px-4 py-3">{inv.customerName}</td>
+                      <td className="px-4 py-3 text-right font-medium">{formatCurrency(inv.totalAmount)}</td>
+                      <td className="px-4 py-3 text-right text-green-600 dark:text-green-400">{formatCurrency(inv.paidAmount)}</td>
+                      <td className="px-4 py-3 text-right text-yellow-600 dark:text-yellow-400">{formatCurrency(inv.pendingAmount)}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${statusColor(inv.status)}`}>{inv.status}</span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{formatDate(inv.invoiceDate)}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="sm" asChild className="h-8 w-8 p-0">
+                            <Link href={`/invoices/${inv.id}`}><Eye className="w-3.5 h-3.5" /></Link>
+                          </Button>
+                          <Button variant="ghost" size="sm" asChild className="h-8 w-8 p-0">
+                            <Link href={`/invoices/${inv.id}/edit`}><Pencil className="w-3.5 h-3.5" /></Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            onClick={() => setDeleteId(inv.id)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -196,7 +234,6 @@ export default function InvoicesPage() {
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              data-testid="button-confirm-delete"
             >
               Delete
             </AlertDialogAction>

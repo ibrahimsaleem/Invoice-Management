@@ -14,12 +14,20 @@ import {
 
 const router: IRouter = Router();
 
+function serializeCustomer(c: typeof customersTable.$inferSelect) {
+  return {
+    ...c,
+    createdAt: c.createdAt instanceof Date ? c.createdAt.toISOString() : c.createdAt,
+    updatedAt: c.updatedAt instanceof Date ? c.updatedAt.toISOString() : c.updatedAt,
+  };
+}
+
 router.get("/customers", async (req, res): Promise<void> => {
   const customers = await db
     .select()
     .from(customersTable)
     .orderBy(customersTable.name);
-  res.json(ListCustomersResponse.parse(customers));
+  res.json(ListCustomersResponse.parse(customers.map(serializeCustomer)));
 });
 
 router.post("/customers", async (req, res): Promise<void> => {
@@ -29,7 +37,7 @@ router.post("/customers", async (req, res): Promise<void> => {
     return;
   }
   const [customer] = await db.insert(customersTable).values(parsed.data).returning();
-  res.status(201).json(GetCustomerResponse.parse(customer));
+  res.status(201).json(GetCustomerResponse.parse(serializeCustomer(customer)));
 });
 
 router.get("/customers/:id", async (req, res): Promise<void> => {
@@ -46,7 +54,7 @@ router.get("/customers/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Customer not found" });
     return;
   }
-  res.json(GetCustomerResponse.parse(customer));
+  res.json(GetCustomerResponse.parse(serializeCustomer(customer)));
 });
 
 router.patch("/customers/:id", async (req, res): Promise<void> => {
@@ -69,7 +77,7 @@ router.patch("/customers/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Customer not found" });
     return;
   }
-  res.json(UpdateCustomerResponse.parse(customer));
+  res.json(UpdateCustomerResponse.parse(serializeCustomer(customer)));
 });
 
 router.delete("/customers/:id", async (req, res): Promise<void> => {
