@@ -86,8 +86,8 @@ Open [http://localhost:5173/](http://localhost:5173/) in your web browser. You w
 
 ### 1. Logging In
 - The database is configured to automatically seed a default manager user on startup if the `users` table is empty.
-- **Username**: `admin`
-- **Password**: `admin123`
+- **Username**: `admin-ibrahim`
+- **Password**: `Password@admin786`
 - Use these credentials to log in. You can log out at any time using the logout icon in the sidebar (desktop) or the mobile top bar.
 
 ### 2. Creating a Customer

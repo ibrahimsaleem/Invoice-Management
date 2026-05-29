@@ -130,7 +130,7 @@ export default function LoginPage() {
         {/* Footnote */}
         <div className="flex flex-col items-center gap-1 mt-6 text-center text-xs">
           <p className="text-slate-600">
-            Default manager credentials: <code className="text-slate-500">admin</code> / <code className="text-slate-500">admin123</code>
+            Default manager credentials: <code className="text-slate-500">admin-ibrahim</code> / <code className="text-slate-500">Password@admin786</code>
           </p>
           <p className="text-slate-500 opacity-85 text-[11px] mt-1">
             Developed by Mohammad Ibrahim Saleem

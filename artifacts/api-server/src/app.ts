@@ -7,6 +7,7 @@ import { logger } from "./lib/logger";
 import { requireAuth } from "./middlewares/auth";
 import { db, usersTable } from "@workspace/db";
 import { hashPassword } from "./lib/auth-utils";
+import { eq } from "drizzle-orm";
 
 const app: Express = express();
 
@@ -59,14 +60,23 @@ app.get("*splat", (req, res, next) => {
 // Seed default admin user on startup if users table is empty
 async function seedAdminUser() {
   try {
-    const existingUsers = await db.select().from(usersTable).limit(1);
-    if (existingUsers.length === 0) {
-      const hashedPassword = hashPassword("admin123");
+    // 1. Remove the old default 'admin' user if they exist
+    await db.delete(usersTable).where(eq(usersTable.username, "admin"));
+
+    // 2. Insert or update the new 'admin-ibrahim' user with password 'Password@admin786'
+    const existingUser = await db.select().from(usersTable).where(eq(usersTable.username, "admin-ibrahim")).limit(1);
+    const hashedPassword = hashPassword("Password@admin786");
+    if (existingUser.length === 0) {
       await db.insert(usersTable).values({
-        username: "admin",
+        username: "admin-ibrahim",
         password: hashedPassword,
       });
-      logger.info("Seeded default admin user (username: admin, password: admin123)");
+      logger.info("Seeded admin user (username: admin-ibrahim)");
+    } else {
+      await db.update(usersTable)
+        .set({ password: hashedPassword })
+        .where(eq(usersTable.username, "admin-ibrahim"));
+      logger.info("Updated admin-ibrahim user credentials");
     }
   } catch (err) {
     logger.error({ err }, "Failed to seed default admin user");
