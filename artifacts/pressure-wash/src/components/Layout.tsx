@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Users, FileText, PlusCircle, CreditCard, Droplets, BarChart2 } from "lucide-react";
+import { LayoutDashboard, Users, FileText, PlusCircle, CreditCard, Droplets, BarChart2, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -13,6 +14,7 @@ const navItems = [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const { user, logout } = useAuth();
 
   const isActive = (href: string) =>
     href === "/dashboard"
@@ -53,6 +55,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
+        {user && (
+          <div className="px-4 py-3 border-t border-sidebar-border flex items-center justify-between gap-2 bg-sidebar-accent/10">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold truncate text-sidebar-foreground">{user.username}</p>
+              <p className="text-[10px] text-muted-foreground">Logged in</p>
+            </div>
+            <button
+              onClick={() => logout()}
+              className="p-1.5 rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-destructive transition-colors cursor-pointer"
+              title="Log Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         <div className="px-6 py-4 border-t border-sidebar-border text-xs text-muted-foreground">
           &copy; {new Date().getFullYear()} Power Clean Pro
         </div>
@@ -61,11 +78,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {/* Mobile top bar */}
-        <header className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-border bg-background flex-shrink-0">
-          <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
-            <Droplets className="w-3.5 h-3.5 text-primary-foreground" />
+        <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
+              <Droplets className="w-3.5 h-3.5 text-primary-foreground" />
+            </div>
+            <span className="font-semibold text-sm">Power Clean Pro</span>
           </div>
-          <span className="font-semibold text-sm">Power Clean Pro</span>
+          {user && (
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground font-medium">{user.username}</span>
+              <button
+                onClick={() => logout()}
+                className="p-1.5 rounded-md text-muted-foreground hover:text-destructive active:bg-muted transition-colors cursor-pointer"
+                title="Log Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </header>
 
         {/* Page content — extra bottom padding on mobile for the bottom nav */}

@@ -398,3 +398,28 @@ export const GetRecentInvoicesResponseItem = zod.object({
 export const GetRecentInvoicesResponse = zod.array(GetRecentInvoicesResponseItem)
 
 
+/**
+ * @summary Login
+ */
+export const LoginBody = zod.object({
+  "username": zod.string(),
+  "password": zod.string()
+})
+
+export const LoginResponse = zod.object({
+  "id": zod.number(),
+  "username": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Get current authenticated user
+ */
+export const GetAuthMeResponse = zod.object({
+  "id": zod.number(),
+  "username": zod.string(),
+  "createdAt": zod.string()
+})
+
+

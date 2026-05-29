@@ -273,3 +273,14 @@ export interface DashboardSummary {
   paidCount: number;
 }
 
+export interface User {
+  id: number;
+  username: string;
+  createdAt: string;
+}
+
+export interface LoginInput {
+  username: string;
+  password: string;
+}
+
