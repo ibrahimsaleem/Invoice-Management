@@ -1,5 +1,7 @@
 # Power Clean Pro — Business Manager
 
+Developed by **Mohammad Ibrahim Saleem**.
+
 A premium, full-stack business management application built for pressure washing businesses. Manage customers, generate professional invoices/quotations, track payments, monitor customer outstanding balances, and download invoices as PDFs.
 
 ---

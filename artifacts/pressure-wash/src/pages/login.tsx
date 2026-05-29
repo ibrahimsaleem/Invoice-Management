@@ -128,9 +128,14 @@ export default function LoginPage() {
         </Card>
 
         {/* Footnote */}
-        <p className="text-center text-xs text-slate-600 mt-6">
-          Default manager credentials: <code className="text-slate-500">admin</code> / <code className="text-slate-500">admin123</code>
-        </p>
+        <div className="flex flex-col items-center gap-1 mt-6 text-center text-xs">
+          <p className="text-slate-600">
+            Default manager credentials: <code className="text-slate-500">admin</code> / <code className="text-slate-500">admin123</code>
+          </p>
+          <p className="text-slate-500 opacity-85 text-[11px] mt-1">
+            Developed by Mohammad Ibrahim Saleem
+          </p>
+        </div>
       </div>
     </div>
   );

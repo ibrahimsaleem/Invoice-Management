@@ -70,8 +70,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         )}
-        <div className="px-6 py-4 border-t border-sidebar-border text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Power Clean Pro
+        <div className="px-6 py-4 border-t border-sidebar-border text-[11px] text-muted-foreground flex flex-col gap-0.5">
+          <div>&copy; {new Date().getFullYear()} Power Clean Pro</div>
+          <div className="text-[10px] opacity-75">Developed by Mohammad Ibrahim Saleem</div>
         </div>
       </aside>
 
