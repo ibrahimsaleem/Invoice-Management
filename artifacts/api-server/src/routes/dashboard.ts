@@ -9,23 +9,19 @@ import {
 const router: IRouter = Router();
 
 router.get("/dashboard/summary", async (req, res): Promise<void> => {
-  const [customerCount] = await db
-    .select({ count: count() })
-    .from(customersTable);
-
-  const [invoiceTotals] = await db
-    .select({
+  const [customerCountResult, invoiceTotalsResult, statusRows] = await Promise.all([
+    db.select({ count: count() }).from(customersTable),
+    db.select({
       count: count(),
       totalBilled: sum(invoicesTable.totalAmount),
       totalPaid: sum(invoicesTable.paidAmount),
       totalPending: sum(invoicesTable.pendingAmount),
-    })
-    .from(invoicesTable);
+    }).from(invoicesTable),
+    db.select({ status: invoicesTable.status, count: count() }).from(invoicesTable).groupBy(invoicesTable.status),
+  ]);
 
-  const statusRows = await db
-    .select({ status: invoicesTable.status, count: count() })
-    .from(invoicesTable)
-    .groupBy(invoicesTable.status);
+  const customerCount = customerCountResult[0];
+  const invoiceTotals = invoiceTotalsResult[0];
 
   const statusMap: Record<string, number> = {};
   for (const row of statusRows) {

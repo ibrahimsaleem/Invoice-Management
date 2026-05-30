@@ -15,7 +15,14 @@ import PaymentsPage from "@/pages/payments/index";
 import BalancesPage from "@/pages/balances";
 import { Loader2 } from "lucide-react";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 30, // 30 seconds
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function Router() {
   const { user, isLoading } = useAuth();
