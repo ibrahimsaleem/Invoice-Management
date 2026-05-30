@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { LayoutDashboard, Users, FileText, PlusCircle, CreditCard, Droplets, BarChart2, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "./ThemeToggle";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -61,13 +62,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <p className="text-xs font-semibold truncate text-sidebar-foreground">{user.username}</p>
               <p className="text-[10px] text-muted-foreground">Logged in</p>
             </div>
-            <button
-              onClick={() => logout()}
-              className="p-1.5 rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-destructive transition-colors cursor-pointer"
-              title="Log Out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <ThemeToggle />
+              <button
+                onClick={() => logout()}
+                className="p-1.5 rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-destructive transition-colors cursor-pointer"
+                title="Log Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
         <div className="px-6 py-4 border-t border-sidebar-border text-[11px] text-muted-foreground flex flex-col gap-0.5">
@@ -89,13 +93,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {user && (
             <div className="flex items-center gap-3">
               <span className="text-xs text-muted-foreground font-medium">{user.username}</span>
-              <button
-                onClick={() => logout()}
-                className="p-1.5 rounded-md text-muted-foreground hover:text-destructive active:bg-muted transition-colors cursor-pointer"
-                title="Log Out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <ThemeToggle />
+                <button
+                  onClick={() => logout()}
+                  className="p-1.5 rounded-md text-muted-foreground hover:text-destructive active:bg-muted transition-colors cursor-pointer"
+                  title="Log Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           )}
         </header>
