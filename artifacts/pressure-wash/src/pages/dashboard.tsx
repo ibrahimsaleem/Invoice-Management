@@ -12,15 +12,17 @@ function StatCard({
   icon: Icon,
   loading,
   accent,
+  href,
 }: {
   title: string;
   value: string | number;
   icon: React.ElementType;
   loading: boolean;
   accent?: string;
+  href?: string;
 }) {
-  return (
-    <Card>
+  const cardContent = (
+    <Card className={href ? "hover:bg-muted/40 transition-colors cursor-pointer select-none" : ""}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -38,6 +40,12 @@ function StatCard({
       </CardContent>
     </Card>
   );
+
+  if (href) {
+    return <Link href={href}>{cardContent}</Link>;
+  }
+
+  return cardContent;
 }
 
 export default function DashboardPage() {
@@ -54,13 +62,14 @@ export default function DashboardPage() {
 
         {/* Stats grid — 2 cols on mobile, 3 on desktop */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-5">
-          <StatCard title="Customers" value={summary?.totalCustomers ?? 0} icon={Users} loading={summaryLoading} />
-          <StatCard title="Invoices" value={summary?.totalInvoices ?? 0} icon={FileText} loading={summaryLoading} />
+          <StatCard title="Customers" value={summary?.totalCustomers ?? 0} icon={Users} loading={summaryLoading} href="/customers" />
+          <StatCard title="Invoices" value={summary?.totalInvoices ?? 0} icon={FileText} loading={summaryLoading} href="/invoices" />
           <StatCard
             title="Total Billed"
             value={summary ? formatCurrency(summary.totalBilled) : "$0.00"}
             icon={DollarSign}
             loading={summaryLoading}
+            href="/invoices"
           />
           <StatCard
             title="Total Paid"
@@ -68,6 +77,7 @@ export default function DashboardPage() {
             icon={TrendingUp}
             loading={summaryLoading}
             accent="text-green-600 dark:text-green-400"
+            href="/payments"
           />
           <StatCard
             title="Pending"
@@ -75,6 +85,7 @@ export default function DashboardPage() {
             icon={Clock}
             loading={summaryLoading}
             accent="text-yellow-600 dark:text-yellow-400"
+            href="/balances"
           />
           <StatCard
             title="Paid Invoices"
@@ -82,6 +93,7 @@ export default function DashboardPage() {
             icon={CheckCircle}
             loading={summaryLoading}
             accent="text-green-600 dark:text-green-400"
+            href="/invoices"
           />
         </div>
 
@@ -89,15 +101,17 @@ export default function DashboardPage() {
         {!summaryLoading && summary && (
           <div className="grid grid-cols-3 gap-2 mb-5">
             {[
-              { label: "Unpaid", count: summary.unpaidCount, color: "bg-red-500", text: "text-red-600 dark:text-red-400" },
-              { label: "Partial", count: summary.partialCount, color: "bg-yellow-500", text: "text-yellow-600 dark:text-yellow-400" },
-              { label: "Paid", count: summary.paidCount, color: "bg-green-500", text: "text-green-600 dark:text-green-400" },
-            ].map(({ label, count, color, text }) => (
-              <div key={label} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-card border border-card-border text-center">
-                <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
-                <div className={`text-xl font-bold ${text}`}>{count}</div>
-                <div className="text-[11px] text-muted-foreground font-medium">{label}</div>
-              </div>
+              { label: "Unpaid", count: summary.unpaidCount, color: "bg-red-500", text: "text-red-600 dark:text-red-400", href: "/balances" },
+              { label: "Partial", count: summary.partialCount, color: "bg-yellow-500", text: "text-yellow-600 dark:text-yellow-400", href: "/balances" },
+              { label: "Paid", count: summary.paidCount, color: "bg-green-500", text: "text-green-600 dark:text-green-400", href: "/invoices" },
+            ].map(({ label, count, color, text, href }) => (
+              <Link href={href} key={label} className="flex-1">
+                <div className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-card border border-card-border text-center hover:bg-muted/40 transition-colors cursor-pointer h-full">
+                  <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
+                  <div className={`text-xl font-bold ${text}`}>{count}</div>
+                  <div className="text-[11px] text-muted-foreground font-medium">{label}</div>
+                </div>
+              </Link>
             ))}
           </div>
         )}
